@@ -1,35 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Configuration;
 
 namespace TurtleLibrary
 {
     /// <summary> 
-     /// Turtle class.  Receives instructions from the driver, validates them and carries them out. 
+     /// Turtle class.  Receives instructions from the mover, validates them and carries them out. 
      /// Maintains internal state for position and facing direction. 
      /// </summary> 
-     public class Turtle 
+     public class Turtle :ITurtle
      { 
          public Turtle() 
          { 
-             LastError = ""; 
-         } 
+             LastError = string.Empty; 
+         }
 
- 
-         private const int TABLE_SIZE = 5; 
+
+         private readonly  int TABLE_SIZE = System.Convert.ToInt32(ConfigurationSettings.AppSettings.Get("TableSize")); 
          private int? _x; 
          private int? _y; 
          private Facing _facing; 
  
  
+
          public string LastError { get; set; } 
  
- 
+         // this method validates if the input position is valid and if it is valid one it places the turtle on the table
          public bool Place(int x, int y, Facing facing) 
-         {             
-             if (MandateIsOnTable(x, y, "placed")) 
+         {
+             if (CheckIsOnTable(x, y, StringConstants.PLACED)) 
              { 
                  _x = x; 
                  _y = y; 
@@ -37,16 +36,16 @@ namespace TurtleLibrary
                  return true; 
              } 
              return false; 
-         } 
- 
- 
+         }
+
+         // this method validates if the turtle is plaved and move is valid.if it is valid one it moves the turtle on the table
          public bool Move() 
-         {  
-             if (MandateIsPlaced("move")) 
+         {
+             if (CheckIsPlaced(StringConstants.MOVE)) 
              { 
                  int newx = GetXAfterMove(); 
-                 int newy = GetYAfterMove(); 
-                 if (MandateIsOnTable(newx, newy, "moved")) 
+                 int newy = GetYAfterMove();
+                 if (CheckIsOnTable(newx, newy, StringConstants.MOVED)) 
                  { 
                      _x = newx; 
                      _y = newy; 
@@ -54,9 +53,9 @@ namespace TurtleLibrary
                  }                 
              } 
              return false; 
-         } 
- 
- 
+         }
+
+         // this method gets the value of x cordinate of the tutle after moving the it 
          private int GetXAfterMove() 
          { 
             if (_facing == Facing.East) 
@@ -71,9 +70,9 @@ namespace TurtleLibrary
                  } 
              } 
              return _x.Value; 
-         } 
- 
- 
+         }
+
+         // this method gets the value of Y cordinate of the tutle after moving the it 
          private int GetYAfterMove() 
          { 
              if (_facing == Facing.North) 
@@ -90,24 +89,24 @@ namespace TurtleLibrary
              return _y.Value; 
         } 
  
- 
+         //this method rotates the turtle by 90 degreee towards left 
          public bool Left() 
          { 
              return Turn(Direction.Left); 
-         } 
- 
- 
+         }
+
+         //this method rotates the turtle by 90 degreee towards right 
          public bool Right() 
          { 
              return Turn(Direction.Right); 
-         } 
- 
- 
+         }
+
+         //this method rotates the turtle by 90 degree towards right/left and then changes the face value of turtle 
          private bool Turn(Direction direction) 
-         { 
-             if (MandateIsPlaced("turn")) 
+         {
+             if (CheckIsPlaced(StringConstants.TURN)) 
              { 
-                 var facingAsNumber = (int)_facing; 
+                 int facingAsNumber = (int)_facing; 
                  facingAsNumber += 1 * (direction == Direction.Right ? 1 : -1); 
                  if (facingAsNumber == 5) facingAsNumber = 1; 
                 if (facingAsNumber == 0) facingAsNumber = 4; 
@@ -117,18 +116,18 @@ namespace TurtleLibrary
              return false; 
         } 
  
- 
+        // this method reports the current position of the turtle
         public string Report() 
-         { 
-             if (MandateIsPlaced("report it's position")) 
+         {
+             if (CheckIsPlaced(StringConstants.REPORT_POSITION)) 
              { 
                  return String.Format("{0},{1},{2}", _x.Value, _y.Value, _facing.ToString().ToUpper()); 
              } 
-             return ""; 
+             return string.Empty; 
          } 
  
- 
-         private bool MandateIsPlaced(string action) 
+         // this method checks if the turtle has been placed on the table
+         private bool CheckIsPlaced(string action) 
          { 
              if (!_x.HasValue || !_y.HasValue) 
              { 
@@ -136,10 +135,10 @@ namespace TurtleLibrary
                  return false; 
              } 
              return true; 
-         } 
- 
- 
-         private bool MandateIsOnTable(int x, int y, string action) 
+         }
+
+         // this method checks if the turtle is not moved out of the table
+         private bool CheckIsOnTable(int x, int y, string action) 
          { 
              if (x < 0 || y < 0 || x >= TABLE_SIZE || y >= TABLE_SIZE) 
              { 
